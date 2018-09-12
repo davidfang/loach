@@ -4,7 +4,8 @@ from loach.model.base.basemodel import BaseModel
 from loach.model import douyindb
 from sqlalchemy import Column, Boolean, Integer, String, DateTime, Date, TIMESTAMP
 from sqlalchemy.dialects.postgresql import JSONB
-from loach.model.douyinaccount_mul import DouYinAccount as DYA
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.dialects.postgresql.dml import Insert
 
 class DouYinAccount(BaseModel):
     __tablename__ = 'tar_douyin_account_info'
@@ -56,12 +57,30 @@ class DouYinAccount(BaseModel):
 
     # 需要计算的数据
     word_cloud = Column(JSONB, nullable=False, default=dict)
+    tags = Column(JSONB, nullable=False, default=list, comment=u'标签')
 
     @classmethod
     def add(cls, **kwargs):
         obj = cls(**kwargs)
         with cls.__db__.session_context(autocommit=True) as session:
             session.add(obj)
+
+    @classmethod
+    def add_with_conflict(cls, **kwargs):
+        with cls.__db__.session_context(autocommit=True) as session:
+            session.execute(Insert(cls).values(**kwargs).on_conflict_do_update(
+                index_elements=[cls.__key__],
+                set_=kwargs
+            ))
+
+    @classmethod
+    def add_all_with_conflict(cls, objs):
+        with cls.__db__.session_context(autocommit=True) as session:
+            for obj in objs:
+                session.execute(Insert(cls).values(**obj).on_conflict_do_update(
+                    index_elements=[cls.__key__],
+                    set_=obj
+                ))
 
     @classmethod
     def exists(cls, user_id):
@@ -74,8 +93,8 @@ class DouYinAccount(BaseModel):
     def update(cls, **kwargs):
         assert cls.__key__ in kwargs.keys(), '待更新记录里应包含 %s' % cls.__key__
         with cls.__db__.session_context(autocommit=True) as session:
-            records = session.query(cls).filter(cls.user_id == kwargs['user_id'])
-            if records:
+            records = session.query(cls).with_for_update().filter(cls.user_id == kwargs['user_id'])
+            if records.first():
                 rows_count = records.update({k: v for k, v in kwargs.items()})
                 return rows_count
     #
@@ -84,9 +103,10 @@ class DouYinAccount(BaseModel):
     @classmethod
     def upsert(cls, **kwargs):
         assert cls.__key__ in kwargs.keys(), '待更新记录里应包含 %s' % cls.__key__
-        record = cls.get(kwargs[cls.__key__])
-        if not record:
-            cls.add(**kwargs)
-        else:
-            cls.update(**kwargs)
-            DYA.add(**kwargs)
+        with cls.__db__.session_context(autocommit=True) as session:
+            records = session.query(cls).with_for_update().filter(cls.user_id == kwargs['user_id'])
+            if records.first():
+                rows_count = records.update({k: v for k, v in kwargs.items()})
+                return rows_count
+            else:
+                session.add(cls(**kwargs))

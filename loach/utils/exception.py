@@ -26,6 +26,12 @@ class DouYinFindTaskFailed(Exception):
     pass
 
 
+class DouYinLetterTaskFailed(Exception):
+    def __init__(self, msg):
+        self.msg = msg
+    pass
+
+
 class DouYinUnknowException(Exception):
     def __init__(self, msg):
         self.msg = msg
@@ -47,3 +53,9 @@ class DeviceError(WebDriverException):
 
 class CommandInvalidException(Exception):
     pass
+
+
+class MultipleDeviceExceptiom(Exception):
+    def __init__(self, msg=None):
+        super().__init__(msg)
+        self.msg = msg

@@ -6,7 +6,7 @@ PATH = lambda p: os.path.abspath(
 )
 
 
-def get_desired_capabilities(app=None, platform=None, device_name=None):
+def get_desired_capabilities(app=None, platform=None, device_name=None, appPackage=None, appActivity=None):
     desired_caps = {
         "platformName": "Android",
         "automationName": "Appium",
@@ -14,9 +14,11 @@ def get_desired_capabilities(app=None, platform=None, device_name=None):
         "deviceName": device_name,
         # "app": "I:\\pywork\\dolphin\\opt\\%s" % app,
         "platformVersion": platform,
-        "appPackage": "com.ss.android.ugc.aweme",
-        "appActivity": "com.ss.android.ugc.aweme.main.MainActivity",
-        "noReset": True
+        "appPackage": appPackage,
+        "appActivity": appActivity,
+        "noReset": True,
+        "unicodeKeyboard": True,
+        'resetKeyboard': True
     }
     if app:
         desired_caps["app"] = app

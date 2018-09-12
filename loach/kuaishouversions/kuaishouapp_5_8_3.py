@@ -25,12 +25,12 @@ class Button(object):
         # self.uiselector = uiselector
 
 
-class DouYinApp_2_0_0(App):
-    def __init__(self, sip, sport, app=None, platform=None, device_name=None, device_type=None):
-        desired_caps = get_desired_capabilities(app, platform=platform, device_name=device_name, appPackage='com.ss.android.ugc.aweme', appActivity='com.ss.android.ugc.aweme.main.MainActivity')
-        super(DouYinApp_2_0_0, self).__init__(desired_caps, sip, sport)
+class KuaiShouApp_5_8_3(App):
+    def __init__(self, sip, sport, app=None,platform=None, device_name=None, device_type=None):
+        desired_caps = get_desired_capabilities(app, platform=platform, device_name=device_name, appPackage='com.smile.gifmaker', appActivity='com.yxcorp.gifshow.HomeActivity')
+        super(KuaiShouApp_5_8_3, self).__init__(desired_caps, sip, sport)
         # 首页滑动翻下一个视频时等待的时间
-        self.swip_to_next_wait_time = 1
+        self.swip_to_next_wait_time = 0.5
         # 点击时间等待的时间
         self.click_wait_time = 2
         # 滑动翻视频、粉丝、关注列表 等待的时间
@@ -42,39 +42,11 @@ class DouYinApp_2_0_0(App):
         # 编辑editor等待时间
         self.editor_wait_time = 0.5
         # 定义需要点击的元素
-        self.buttons = AppButtonManager.checkout(app_version='2.0.0', device_name=device_type)
-        # self.author_info_button = Button(left_top=(637, 643), right_bottom=(711, 717),  locator=(By.XPATH, "/hierarchy/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.RelativeLayout/android.widget.FrameLayout/android.widget.RelativeLayout/android.widget.LinearLayout/android.widget.LinearLayout/android.widget.FrameLayout[2]/android.widget.LinearLayout/android.widget.TextView[1]"))
-        # self.author_work_button = Button(left_top=(0, 526), right_bottom=(359, 586),    locator=(By.XPATH, "//android.widget.LinearLayout/android.widget.RelativeLayout/android.widget.TextView[contains(@text,'作品')]"))
-        # self.author_like_button = Button(left_top=(360, 526), right_bottom=(720, 586),  locator=(By.XPATH, '//android.widget.LinearLayout/android.widget.RelativeLayout/android.widget.TextView[contains(@text,"喜欢")]'))
-        # self.music_info_button = Button(left_top=(636, 1117), right_bottom=(712, 1193), locator=(By.XPATH, "/hierarchy/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.FrameLayout/android.widget.HorizontalScrollView/android.widget.LinearLayout/android.widget.TabHost/android.widget.FrameLayout/android.widget.FrameLayout[1]/android.widget.FrameLayout/android.view.View/android.widget.FrameLayout/android.support.v4.view.ViewPager/android.widget.FrameLayout/android.view.View[1]/android.widget.FrameLayout/android.support.v4.view.ViewPager/android.widget.FrameLayout/android.widget.RelativeLayout/android.widget.FrameLayout[2]/android.widget.ImageView[1]"))
-        # self.music_hot_button = Button(left_top=(0, 498), right_bottom=(359, 566),      locator=(By.XPATH, "//android.widget.LinearLayout/android.widget.TextView[contains(@text,'热门')]"))
-        # self.music_latest_button = Button(left_top=(361, 498), right_bottom=(720, 566), locator=(By.XPATH, "//android.widget.LinearLayout/android.widget.TextView[contains(@text,'最新')]"))
-        # self.back_button = Button(left_top=(5, 38), right_bottom=(71, 104),             locator=(By.XPATH, "/hierarchy/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.FrameLayout/android.widget.HorizontalScrollView/android.widget.LinearLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.LinearLayout[2]/android.widget.RelativeLayout/android.widget.ImageView"))
-        # self.author_follower_button = Button(locator=(By.XPATH, "//android.widget.LinearLayout/android.widget.TextView[contains(@text,'粉丝')]"))
-        # self.author_following_button = Button(locator=(By.XPATH, "//android.widget.LinearLayout/android.widget.TextView[contains(@text,'关注')]"))
-        # # self.find_button = Button(left_top=(0, 46), right_bottom=(83, 129), locator=(By.XPATH, '/hierarchy/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.FrameLayout/android.widget.HorizontalScrollView/android.widget.LinearLayout/android.widget.TabHost/android.widget.FrameLayout/android.widget.FrameLayout[1]/android.widget.FrameLayout/android.view.View/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.RelativeLayout/android.widget.ImageView[1]'))
-        # self.find_button = Button(left_top=(628, 46), right_bottom=(711, 129), locator=(By.ANDROID_UIAUTOMATOR, 'new UiSelector().className("android.widget.ImageView").instance(10)'))
-        # self.find_editor_button = Button(left_top=(61, 115), right_bottom=(659, 143), locator=(By.XPATH, '//android.widget.EditText[contains(@text, "输入搜索内容")]'))
-        # self.do_find_button = Button(left_top=(649, 53), right_bottom=(697, 86)
-        #                             # , locator=(By.ANDROID_UIAUTOMATOR, 'new UiSelector().className("android.widget.TextView").instance(0)'))
-        #                              , locator=(By.XPATH, "/hierarchy/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.FrameLayout/android.widget.FrameLayout/android.widget.TextView"))
-        # self.first_find_result_button = Button(locator=(By.XPATH, "/hierarchy/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.FrameLayout/android.widget.FrameLayout[2]/android.widget.FrameLayout/android.widget.FrameLayout/android.support.v7.widget.RecyclerView/android.widget.RelativeLayout[1]"))
-        # self.not_update_button = Button(left_top=(314, 865), right_bottom=(406, 897), locator=(By.XPATH, "//android.widget.TextView[contains(@text,'以后再说')]"))
+        self.buttons = AppButtonManager.checkout_kuaishou(app_version='5.8.3', device_type=device_type)
 
     def init_app(self):
-        # self.sleep(5)
-        # self.click()
-        # self.sleep(1)
-        # self.click_author_info_xy()
-        #
-        # self.sleep(3)
-        # self.click_author_like()
-        # self.click_author_works()
-        #
-        # self.click_back()
-        # self.sleep(13)
         self.sleep(10)
-        #self.close_update_widget()
+        # self.close_update_widget()
         # 登录帐号的情况下每次打开app都会跳出直播
 
         self.move_to_next()
@@ -94,47 +66,21 @@ class DouYinApp_2_0_0(App):
         if "following" in attrs:
             print('following')
             self.click_author_following()
-            self.swip_to_bottom(2, 2, 1)
+            self.swip_to_bottom(30, 5, 1)
             self.click_back()
         if "follower" in attrs:
             print('follower')
             self.click_author_follower()
-            self.swip_to_bottom(2, 2, 1)
+            self.swip_to_bottom(30, 5, 1)
             self.click_back()
         if "work" in attrs:
             print('work')
             self.click_author_works()
-            self.swip_to_bottom(2, 2, 1)
+            self.swip_to_bottom(30, 5, 1)
         if "like" in attrs:
             print('like')
             self.click_author_like()
-            self.swip_to_bottom(2, 2, 1)
-        self.click_back()
-
-    def capture_info_page(self, attrs=None):
-        if not attrs:
-            attrs = ("comment", "following", "follower", "work", "like")
-
-        if "comment" in attrs:
-            self.click_comment()
-            self.swip_to_bottom(30, 5)
-            self.click_back()
-        self.click_author_info_xy()
-        if "following" in attrs:
-            self.click_author_following()
-            self.swip_to_bottom(30, 5)
-            self.click_back()
-        if "follower" in attrs:
-            self.click_author_follower()
-            self.swip_to_bottom(50, 5)
-            self.click_back()
-        if "work" in attrs:
-            self.click_author_works()
-            self.swip_to_bottom(30, 5)
-        if "like" in attrs:
-            self.click_author_like()
-            self.swip_to_bottom(30, 5)
-
+            self.swip_to_bottom(15, 5, 1)
         self.click_back()
 
     def capture_music_info_page(self):
@@ -175,7 +121,7 @@ class DouYinApp_2_0_0(App):
                 break
 
     def set_up(self):
-        super(DouYinApp_2_0_0, self).set_up()
+        super(KuaiShouApp_5_8_3, self).set_up()
         self.sleep(3)
         # self.capture_author_info_by_shortid("")
         # self.init_app()
@@ -279,7 +225,9 @@ class DouYinApp_2_0_0(App):
     def click_do_find(self):
         # 2018-6-27 app 界面更改，  废弃
         # self.wait_element_clickable(self.buttons['do_find_button'].locator).click()
-        self.driver.press_keycode(66)
+        # 废弃，在nox抖音2.0上测试成功，在实体机抖音2.1测试失败
+        # self.driver.press_keycode(66)
+        self.click_by_xy(self.buttons['keyboard_search'].left_top, self.buttons['keyboard_search'].right_bottom)
         self.sleep(self.find_wait_time)
 
     def click_first_find_result(self):
@@ -322,7 +270,7 @@ class DouYinApp_2_0_0(App):
         try:
             self.capture_author_info_by_shortid(command['data']['short_id'], attrs=command['data']['attrs'])
         except (TimeoutException, NoSuchElementException, WebDriverException) as e:
-            if times == 3:
+            if times >= 5:
                 raise DouYinFindTaskFailed(msg="抖音搜索任务失败 ")
             raise e
 
@@ -334,10 +282,9 @@ class DouYinApp_2_0_0(App):
         :return:
         """
         try:
-            while True:
-                self.capture_info_page(attrs=command['data']['attrs'])
-                # self.capture_music_info_page()
-                self.move_to_next()
+            if 'mainpage' in command['data']['attrs']:
+                while True:
+                    self.swip_to_bottom(max_assert=20, times_once_assert=50)
         except (TimeoutException, NoSuchElementException, WebDriverException) as e:
             raise e
 
@@ -349,6 +296,3 @@ class DouYinApp_2_0_0(App):
                 self.do_crawling(command)
         except DouYinFindTaskFailed as e:
             raise e
-
-
-

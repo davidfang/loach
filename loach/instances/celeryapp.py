@@ -32,10 +32,10 @@ from loach.model.douyinvideo import DouYinVideo
 from loach.model.douyincomment import DouComment
 from json.decoder import JSONDecodeError
 
-con = pika.BlockingConnection(pika.ConnectionParameters(host='0.0.0.0', port=5672, virtual_host='/', credentials=pika.PlainCredentials('', '')))
+con = pika.BlockingConnection(pika.ConnectionParameters(host='xxx', port=5672, virtual_host='/', credentials=pika.PlainCredentials('xxx', 'xxx')))
 channel = con.channel()
 
-engine = create_engine("p")
+engine = create_engine("postgresql://root:tarsocial@192.168.1.8:5432/douyin")
 engine.connect()
 
 

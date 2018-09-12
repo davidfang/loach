@@ -26,8 +26,8 @@ class Button(object):
 
 
 class DouYinApp_1_7_6(App):
-    def __init__(self, sip, sport, app=None):
-        desired_caps = get_desired_capabilities(app, platform='5.1', device_name="Emulator")
+    def __init__(self, sip, sport, app=None, platform=None, device_name=None, device_type=None):
+        desired_caps = get_desired_capabilities(app, platform=platform, device_name=device_name, appPackage='com.ss.android.ugc.aweme', appActivity='com.ss.android.ugc.aweme.main.MainActivity')
         super(DouYinApp_1_7_6, self).__init__(desired_caps, sip, sport)
         # 首页滑动翻下一个视频时等待的时间
         self.swip_to_next_wait_time = 1
@@ -42,7 +42,7 @@ class DouYinApp_1_7_6(App):
         # 编辑editor等待时间
         self.editor_wait_time = 0.5
         # 定义需要点击的元素
-        self.buttons = AppButtonManager.checkout(app_version='1.7.6', device_name='nox')
+        self.buttons = AppButtonManager.checkout(app_version='1.7.6', device_name=device_type)
         # self.author_info_button = Button(left_top=(637, 643), right_bottom=(711, 717),  locator=(By.XPATH, "/hierarchy/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.RelativeLayout/android.widget.FrameLayout/android.widget.RelativeLayout/android.widget.LinearLayout/android.widget.LinearLayout/android.widget.FrameLayout[2]/android.widget.LinearLayout/android.widget.TextView[1]"))
         # self.author_work_button = Button(left_top=(0, 526), right_bottom=(359, 586),    locator=(By.XPATH, "//android.widget.LinearLayout/android.widget.RelativeLayout/android.widget.TextView[contains(@text,'作品')]"))
         # self.author_like_button = Button(left_top=(360, 526), right_bottom=(720, 586),  locator=(By.XPATH, '//android.widget.LinearLayout/android.widget.RelativeLayout/android.widget.TextView[contains(@text,"喜欢")]'))

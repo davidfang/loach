@@ -1,6 +1,8 @@
 ### loach
 
 ![image](https://github.com/daxingshen/imgines/raw/master/3%202.gif)
+
+![image](https://github.com/daxingshen/imgines/raw/master/1.gif)
 - loach是一个移动端爬虫，针对现下很火的短视频app—抖音
 
   1. 支持多个android设备并行自动化
@@ -72,17 +74,20 @@
 
         2. 启动appium
 
-           > appium -p 4723 -U 192.168.1.201
-           >
-           > appium -p 4724 -U 192.168.1.202
-           >
-           > appium -p 4725 -U 192.168.1.203
-           >
-           > appium -p 4726 -U 192.168.1.204
-           >
-           > appium -p 4727 -U 192.168.1.205
-           >
-           > appium -p 4728 -U 192.168.1.206
+           > appium -p 4723 -bp 6001 -U 192.168.1.201
+
+           > appium -p 4724 -bp 6002 -U 192.168.1.202
+
+           > appium -p 4725 -bp 6003 -U 192.168.1.203
+
+           > appium -p 4726 -bp 6004 -U 192.168.1.204
+
+           > appium -p 4727 -bp 6005 -U 192.168.1.205
+
+           > appium -p 4728 -bp 6006 -U 192.168.1.206
+
+            -bp 并行测试最好指定此参数，否则会引发“the socket ended by other party”异常
+
 
         3. 启动loach
 
@@ -145,16 +150,16 @@
            }
            ```
 
-           
 
 
 
-     
 
-        [更多](https://www.jianshu.com/p/8151559a9f50)
 
-   
-     
+
+
+
+
+
 
 
 

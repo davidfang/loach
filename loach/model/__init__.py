@@ -55,3 +55,11 @@ douyindb = Database(
     pool_timeout=4,
     pool_recycle=3600
 )
+
+douyindb_4 = Database(
+    config['SQLALCHEMY_DATABASE_URI_4'],
+    max_overflow=20,
+    pool_size=10,
+    pool_timeout=4,
+    pool_recycle=3600
+)

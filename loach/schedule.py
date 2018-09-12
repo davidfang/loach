@@ -18,13 +18,12 @@ class Schedule(threading.Thread):
     def __init__(self, device_manager):
         super().__init__()
         # 任务命令的队列
-        self._queue = queue.Queue(maxsize=100)
-        # 控制命令的队列
-        self._ctl_queue = queue.Queue(maxsize=10)
+        self._queue = queue.Queue(maxsize=1000000)
+        # 控制命令的队列  弃用
+        # self._ctl_queue = queue.Queue(maxsize=10)
         self.device_manager = device_manager
 
     def run(self):
-        threading.Thread(target=self.ctl_listener).start()
         while True:
             if self._queue:
                 cmd = self._queue.get(block=True)
@@ -42,38 +41,20 @@ class Schedule(threading.Thread):
         s = arrow.now().timestamp
         e = s + timeout if timeout else 0
         while not timeout or s <= e:
-            device = self.device_manager.get_device_prepared()
-            if not device and command['force']:
-                device = self.device_manager.get_device_running(Task.CRAWLING)
+            device = self.device_manager.get_device_prepared(udid=command['udid'])
+            # if not device and command['force']:
+            #     device = self.device_manager.get_device_running(Task.CRAWLING)
             if device:
                 break
             else:
                 s = arrow.now().timestamp
         else:
             raise DeviceTimeoutException(msg="没有可用的设备，正在等待设备就绪。。。")
-        try:
-            t = threading.Thread(target=device.do, args=(command, device.udid))
-            t.start()
-        except Exception as e:
-            if device:
-                device.modify_stat(Stat.RUNNING)
-            import traceback
-            traceback.print_exc()
-            raise e
-
-    def ctl_listener(self):
-        while True:
-            if self._ctl_queue:
-                cmd = self._ctl_queue.get(block=True)
-                if cmd['task_type'] == Task.ADD_DEVICE:
-                    self.device_manager.add_device(Device(**(cmd['data'])))
+        t = threading.Thread(target=device.do, args=(command, device.udid))
+        t.start()
 
     def push_command(self, command):
-        print('收到命令', command)
-        if command['task_type'] == Task.ADD_DEVICE:
-            self._ctl_queue.put(command)
-        else:
-            self._queue.put(command)
+        self._queue.put(command)
 
 
 def int2menu(t):
@@ -86,7 +67,7 @@ def int2menu(t):
 
 
 dm = DeviceManager()
-schedul = Schedule(dm)
+scheduler = Schedule(dm)
 
 
 def main():

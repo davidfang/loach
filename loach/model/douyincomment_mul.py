@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 import datetime
 from loach.model.base.basemodel import BaseModel
-from loach.model import douyindb
+from loach.model import douyindb_4
 from sqlalchemy import Column, Boolean, Integer, String, DateTime
-from sqlalchemy.dialects.postgresql import JSONB, Insert
+from sqlalchemy.dialects.postgresql import JSONB
 
 
 class DouComment(BaseModel):
-    __tablename__ = 'tar_douyin_comment_info'
-    __db__ = douyindb
+    __tablename__ = 'tar_douyin_comment_info_mul'
+    __db__ = douyindb_4
     __key__ = 'comment_id'
     __table_args__ = {
         "schema": "douyindb_test"
@@ -26,7 +26,7 @@ class DouComment(BaseModel):
     nickname = Column(String, nullable=False, default='', comment=u'作者昵称')
     video_id = Column(String, nullable=False, default='', comment=u'视频唯一标识')
     reply_id = Column(String, nullable=False, default='', comment=u'回复的评论的id')
-    comment_id = Column(String, nullable=False, unique=True, comment=u'视频唯一标识')
+    comment_id = Column(String, nullable=False, comment=u'视频唯一标识')
     text = Column(String, nullable=False, default='', comment=u'评论内容')
     like_count = Column(Integer, nullable=False, default=0, comment=u'原 digg_count，点赞数')
     status = Column(Integer, nullable=False, default=0, comment=u'0 表示正常，其他有待定义')
@@ -39,21 +39,10 @@ class DouComment(BaseModel):
             session.add(obj)
 
     @classmethod
-    def add_with_conflict(cls, **kwargs):
+    def add_all(cls, objs):
+        comments = [cls(**obj) for obj in objs]
         with cls.__db__.session_context(autocommit=True) as session:
-            session.execute(Insert(cls).values(**kwargs).on_conflict_do_update(
-                index_elements=[cls.__key__],
-                set_=kwargs
-            ))
-
-    @classmethod
-    def add_all_with_conflict(cls, objs):
-        with cls.__db__.session_context(autocommit=True) as session:
-            for obj in objs:
-                session.execute(Insert(cls).values(**obj).on_conflict_do_update(
-                    index_elements=[cls.__key__],
-                    set_=obj
-                ))
+            session.add_all(comments)
 
     @classmethod
     def exists(cls, comment_id):

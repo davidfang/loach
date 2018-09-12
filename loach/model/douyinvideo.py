@@ -3,7 +3,7 @@ import datetime
 from loach.model.base.basemodel import BaseModel
 from loach.model import douyindb
 from sqlalchemy import Column, Boolean, Integer, String, DateTime
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import JSONB, Insert
 
 
 class DouYinVideo(BaseModel):
@@ -52,6 +52,24 @@ class DouYinVideo(BaseModel):
             session.add(obj)
 
     @classmethod
+    def add_with_conflict(cls, **kwargs):
+        with cls.__db__.session_context(autocommit=True) as session:
+            session.execute(Insert(cls).values(**kwargs).on_conflict_do_update(
+                index_elements=[cls.__key__],
+                set_=kwargs
+            ))
+
+    @classmethod
+    def add_all_with_conflict(cls, objs):
+        with cls.__db__.session_context(autocommit=True) as session:
+            objs['play_url'].rereplace('play', 'playwm')
+            for obj in objs:
+                session.execute(Insert(cls).values(**obj).on_conflict_do_update(
+                    index_elements=[cls.__key__],
+                    set_=obj
+                ))
+
+    @classmethod
     def exists(cls, video_id):
         if cls.get(video_id):
             return True
@@ -62,16 +80,19 @@ class DouYinVideo(BaseModel):
     def update(cls, **kwargs):
         assert cls.__key__ in kwargs.keys(), '待更新记录里应包含 %s' % cls.__key__
         with cls.__db__.session_context(autocommit=True) as session:
-            records = session.query(cls).filter(cls.user_id == kwargs['video_id'])
-            if records:
+            records = session.query(cls).with_for_update().filter(cls.video_id == kwargs['video_id'])
+            if records.first():
                 rows_count = records.update({k: v for k, v in kwargs.items()})
                 return rows_count
 
     @classmethod
     def upsert(cls, **kwargs):
         assert cls.__key__ in kwargs.keys(), '待更新记录里应包含 %s' % cls.__key__
-        record = cls.get(kwargs[cls.__key__])
-        if not record:
-            cls.add(**kwargs)
-        else:
-            cls.update(**kwargs)
+        with cls.__db__.session_context(autocommit=True) as session:
+            records = session.query(cls).with_for_update().filter(cls.video_id == kwargs['video_id'])
+            if records.first():
+                rows_count = records.update({k: v for k, v in kwargs.items()})
+                return rows_count
+            else:
+                session.add(cls(**kwargs))
+

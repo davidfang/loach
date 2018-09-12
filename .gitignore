@@ -107,7 +107,3 @@ venv.bak/
 .idea/
 *.ipr
 *.iws
-setting.py
-schedule.py
-celeryapp.py
-pikaapp.py

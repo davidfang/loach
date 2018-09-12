@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from enum import Enum
 
-
-class Stat(Enum):
+class Stat(object):
     # 就绪态 没有执行任何app
     PREPARED = 1
     # 运行态 正在运行app
@@ -14,11 +12,13 @@ class Stat(Enum):
     NOT_FOUND = 8
 
 
-class Task(Enum):
+class Task(object):
     FINDING = 1
     CRAWLING = 2
     ADD_DEVICE = 4
+    KOL_LETTER = 8
+    CATEGORY = 16
 
 
-class Extra(Enum):
+class Extra(object):
     FORCE = 1

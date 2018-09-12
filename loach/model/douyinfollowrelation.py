@@ -28,6 +28,12 @@ class DouYinFollowRelation(BaseModel):
             session.add(obj)
 
     @classmethod
+    def add_all(cls, objs):
+        relations = [cls(**obj) for obj in objs]
+        with cls.__db__.session_context(autocommit=True) as session:
+            session.add_all(relations)
+
+    @classmethod
     def exists(cls, user_id=None, follower_id=None):
         with cls.__db__.session_context() as session:
             record = session.query(cls).filter(cls.user_id == user_id, cls.follower_id == follower_id).first()
@@ -35,3 +41,13 @@ class DouYinFollowRelation(BaseModel):
                 return True
             else:
                 return False
+
+    @classmethod
+    def upsert(cls, **kwargs):
+        with cls.__db__.session_context(autocommit=True) as session:
+            records = session.query(cls).with_for_update().filter(cls.user_id == kwargs['user_id'], cls.follower_id == kwargs['follower_id'])
+            if records.first():
+                rows_count = records.update({k: v for k, v in kwargs.items()})
+                return rows_count
+            else:
+                session.add(cls(**kwargs))

@@ -13,7 +13,7 @@ class App(object):
 
     def __init__(self, desired_caps, sip, sport):
         self.driver = webdriver.Remote('http://%s:%d/wd/hub' % (sip, sport), desired_caps)
-        self.wait = WebDriverWait(self.driver, 30)
+        self.wait = WebDriverWait(self.driver, 90)
         # {'width':w, 'height':h}
         self.window = self.driver.get_window_size()
 
@@ -48,6 +48,11 @@ class App(object):
             .move_to(x=x2, y=y2) \
             .release() \
             .perform()
+
+    def clear_editor(self):
+        self.driver.press_keycode(123)
+        for i in range(12):
+            self.driver.press_keycode(67)
 
     def app_is_installed(self, app_package):
         self.driver.is_app_installed(app_package)

@@ -8,17 +8,22 @@
 """
 import traceback
 import arrow
+import logging
 import time
 from threading import Lock
+
+import os
+
 from loach.douyinapp import DouYinApp
+from loach.kuaishouapp import KuaiShouApp
 from loach.constant import Stat
 from loach.utils.exception import *
 from selenium.common.exceptions import WebDriverException
-
 from loach.utils import retry
+from loach.setting import config
 
 device_stat_lock = Lock()
-device_is_blocked_lock = Lock()
+logger = logging.getLogger('loach')
 
 
 class DeviceManager():
@@ -30,6 +35,11 @@ class DeviceManager():
                 self.devices.append(device)
 
     def add_device(self, device):
+        for d in self.devices:
+            if d.ip == device.ip and d.port == device.port:
+                raise MultipleDeviceExceptiom(msg='设备已经存在 [%s:%d]' %(device.ip, device.port))
+            if d.sip == device.sip and d.sport == device.sport:
+                raise MultipleDeviceExceptiom(msg='添加设备失败 [%s:%d],appium节点已经被[%s:%d]使用 [%s:%d]' %(device.ip, device.port, device.sip, device.sport))
         self.devices.append(device)
 
     # def install_app_devices(self, app_name, device_udids=None, app=None):
@@ -50,13 +60,19 @@ class DeviceManager():
     #             device.open_app(app_name)
     #             device.modify_stat(Stat.RUNNING)
 
-    def get_device_prepared(self):
+    def get_device_prepared(self, udid=None):
         device_stat_lock.acquire()
         for device in self.devices:
-            if device.stat == Stat.PREPARED:
-                device.modify_stat(Stat.RUNNING)
-                device_stat_lock.release()
-                return device
+            if not udid:
+                if device.stat == Stat.PREPARED:
+                    device.modify_stat(Stat.RUNNING)
+                    device_stat_lock.release()
+                    return device
+            else:
+                if device.stat == Stat.PREPARED and device.udid == udid:
+                    device.modify_stat(Stat.RUNNING)
+                    device_stat_lock.release()
+                    return device
         device_stat_lock.release()
 
     def get_devices_prepared(self):
@@ -69,35 +85,52 @@ class DeviceManager():
         device_stat_lock.release()
         return devices
 
-    def get_device_running(self, task_type):
-        device_stat_lock.acquire()
-        for device in self.devices:
-            if device.stat == Stat.RUNNING and device.task.task_type == task_type and not device.task_blocked:
-                device_stat_lock.release()
-                device_is_blocked_lock.acquire()
-                device.task_blocked = True
-                device_is_blocked_lock.release()
-                return device
-        device_stat_lock.release()
+    # def get_device_running(self, task_type):
+    #     device_stat_lock.acquire()
+    #     for device in self.devices:
+    #         if device.stat == Stat.RUNNING and device.task.task_type == task_type and not device.task_blocked:
+    #             device_stat_lock.release()
+    #             return device
+    #     device_stat_lock.release()
 
     def check_device_stat(self, udid):
         for device in self.devices:
             if device.udid == udid:
                 return device.stat
 
+    def get_devices_stat(self):
+        stats = []
+        for device in self.devices:
+            stats.append({
+                'ip': device.ip,
+                'port': device.port,
+                'sip': device.sip,
+                'sport': device.sport,
+                'udid': device.udid,
+                'platform': device.platform,
+                'device_name': device.device_name,
+                'device_type': device.device_type,
+                'app': type(device.app).__name__,
+                'stat': device.stat,
+                'task': device.task.obj2dict() if device.task else dict()
+            })
+        return stats
+
 
 class Device(object):
-    def __init__(self, ip=None, port=None, sip=None, sport=None):
+    def __init__(self, ip=None, port=None, sip=None, sport=None, udid=None, platform=None, device_name=None, device_type=None):
         self.ip = ip
         self.port = int(port)
         self.sip = sip
         self.sport = int(sport)
-        self.udid = "%s:%d" % (self.ip, self.port)
+        self.udid = udid
+        self.platform = platform
+        self.device_name = device_name
+        self.device_type = device_type
         self.app = None
         self.start_time = arrow.now('local').timestamp
         self.stat = Stat.PREPARED
         self.task = None
-        self.task_blocked = False
 
     def install_app(self, app_name, app):
         """
@@ -115,7 +148,10 @@ class Device(object):
         :param app_name:
         :return:
         """
-        self.app = DouYinApp(self.sip, self.sport)
+        if app_name == 'douyin':
+            self.app = DouYinApp(self.sip, self.sport, platform=self.platform, device_name=self.device_name, device_type=self.device_type)
+        elif app_name == 'kuaishou':
+            self.app = KuaiShouApp(self.sip, self.sport, platform=self.platform, device_name=self.device_name, device_type=self.device_type)
         return self.app
 
     def modify_stat(self, stat):
@@ -138,62 +174,62 @@ class Device(object):
             }
         :return:
         """
-        while True:
-            device_is_blocked_lock.acquire()
-            blocked = self.task_blocked
-            device_is_blocked_lock.release()
-            if blocked:
-                time.sleep(15)
-            else:
-                break
+        fh = logging.FileHandler(os.path.join(config['PRO_DIR'], './logs/loach-{}'.format(self.udid)))
+        fm = logging.Formatter(config['LOGGING_CONFIG']['formatters']['f']['format'])
+        fh.setFormatter(fm)
+        thread_logger = logging.getLogger('loach.{}'.format(self.udid))
+        thread_logger.addHandler(fh)
+        thread_logger.setLevel(logging.DEBUG)
         try:
-            print("[%s]: 正在执行 command: %s" % (thread_name, command))
-            self.task = command
+            # print("[%s]: 正在执行 command: %s" % (thread_name, command))
+            thread_logger.debug("[%s]: 正在执行 command: %s" % (thread_name, command))
             app = self.open_app(command['app_name'])
-            print("[%s]: 成功打开app，马上执行命令" % thread_name)
+            self.task = command
+            thread_logger.debug("[%s]: 成功打开app，马上执行命令" % thread_name)
+            # print("[%s]: 成功打开app，马上执行命令" % thread_name)
             # app暂时没有跳出更新窗口，所以先注释调
             self.app.init_app()
             result = app.do(command, times)
-        except (TimeoutException, NoSuchElementException, WebDriverException) as e:
-            print("[%s]: DeviceError" % thread_name)
-            print("[%s]: " % thread_name)
-            # if times < 1000:
-            #     time.sleep(30)
-            raise DeviceError(msg=e.msg + "[cmd]: %s" % command)
-            # self.modify_stat(Stat.FAULT)
-            # print("[%s]: 失败，结束重试 " % thread_name)
 
+        except (TimeoutException, NoSuchElementException, WebDriverException) as e:
+            # print("[%s]: DeviceError" % thread_name)
+            thread_logger.debug("[%s]: DeviceError" % thread_name)
+            # print("[%s]: " % thread_name)
+            raise DeviceError(msg=e.msg + "[cmd]: %s" % command)
         except (ConnectionRefusedError, ConnectionResetError, URLError) as e:
-            print("[%s]: AppiumServerTimeout" % thread_name)
-            print("[%s]: " % thread_name)
-            # if times < 1000:
-            #     time.sleep(30)
-            raise AppiumServerTimeout(msg="[===到appium server的连接超时，请检查网络或确保appium server已经启动===] " + "[cmd]: %s" % command)
-            # self.modify_stat(Stat.FAULT)
-            # print("[%s]: 失败，结束重试 " % thread_name)
+            # print("[%s]: AppiumServerTimeout" % thread_name)
+            thread_logger.debug("[%s]: AppiumServerTimeout" % thread_name)
+            # print("[%s]: " % thread_name)
+            raise AppiumServerTimeout(
+                msg="[===到appium server的连接超时，请检查网络或确保appium server已经启动===] " + "[cmd]: %s" % command)
         except DouYinFindTaskFailed as e:
             # TODO 回调通知失败,并 kill 线程
-            self.modify_stat(Stat.PREPARED)
-            print("[%s]: DouYinFindTaskFailed" % thread_name)
-            #     self.modify_stat(Stat.PREPARED)
-            #     self.app.quit()
-            #     print("执行完成")
+            # print("[%s]: DouYinFindTaskFailed" % thread_name)
+            thread_logger.debug("[%s]: DouYinFindTaskFailed" % thread_name)
+            raise e
+        except DouYinLetterTaskFailed as e:
+            thread_logger.debug("[%s]: DouYinLetterTaskFailed" % thread_name)
             # 不抛出任何异常即执行到底结束
-
         except InvalidSessionIdException as e:
-            print("[%s]: InvalidSessionIdException" % thread_name)
-            e.msg = e.msg + "or 被其他优先级高的任务阻塞" + " [cmd]: %s" %command
+            thread_logger.debug("[%s]: InvalidSessionIdException" % thread_name)
+            # print("[%s]: InvalidSessionIdException" % thread_name)
+            e.msg = e.msg + " [cmd]: %s" % command
             raise e
         except Exception as e:
-            print("[%s]: 未预见的异常，需要处理" % thread_name)
+            thread_logger.debug("[%s]: 未预见的异常，需要处理" % thread_name)
+            # print("[%s]: 未预见的异常，需要处理" % thread_name)
             raise DouYinUnknowException(msg="[%s]: 未预见的异常，需要处理，%s" % (thread_name, e))
             # TODO 用来捕捉所有意料之外的异常，一旦发现在这里 catch
-            traceback.print_exc()
+            # traceback.print_exc()
         else:
-            print("[%s]: 执行完成" % thread_name)
-            self.app.quit()
-            self.modify_stat(Stat.PREPARED)
-        print("[%s]: 线程结束" % thread_name)
+            thread_logger.debug("[%s]: 执行完成" % thread_name)
+            # print("[%s]: 执行完成" % thread_name)
+        finally:
+            if self.app:
+                self.app.quit()
+        self.modify_stat(Stat.PREPARED)
+        thread_logger.debug("[%s]: 线程结束" % thread_name)
+        # print("[%s]: 线程结束" % thread_name)
 
     def __str__(self):
         return "设备: [%s:%s] \n 开始运行时间: [%s] \n 已经运行了[%d]分钟" \

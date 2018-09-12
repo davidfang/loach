@@ -2,14 +2,14 @@ from loach.utils import retry
 from queue import Queue
 from loach.utils.exception import *
 
-@retry(forever=True)
-def func(q, times=None):
-    e = q.get()
-    print(e)
-    raise DouYinUnknowException(msg="times:%d" % times)
 
-q = Queue(maxsize=10)
-for i in range(10):
-    q.put(i)
+def f(kwargs):
+    a = kwargs
+    a["new"] = 'new'
 
-func(q)
+d = {
+    "1":1,
+    "2":2
+}
+f(d)
+print(d)
